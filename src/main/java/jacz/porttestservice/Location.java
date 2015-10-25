@@ -9,39 +9,31 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Service for monitoring server status and load
+ * Created by Alberto on 26/10/2015.
  */
-public class ServerStatus extends HttpServlet {
+public class Location extends HttpServlet {
 
     public static final class Result {
 
-        private final String status;
+        private final String location;
 
-        /**
-         * A value between 0 and 1 that indicates the current server load
-         */
-        private final float serverLoad;
-
-        public Result(float serverLoad) {
-            this.status = "OK";
-            this.serverLoad = serverLoad;
+        public Result(String location) {
+            this.location = location;
         }
 
-        public String getStatus() {
-            return status;
-        }
-
-        public float getServerLoad() {
-            return serverLoad;
+        public String getLocation() {
+            return location;
         }
     }
+
+    public static final String UNKNOWN_LOCATION = "UNKNOWN_LOCATION";
 
     @Override
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
             throws ServletException, IOException {
         Gson gson = new Gson();
-        String jsonResponse = gson.toJson(new Result(0f));
+        String jsonResponse = gson.toJson(new Result(UNKNOWN_LOCATION));
         response.getWriter().write(jsonResponse);
     }
 

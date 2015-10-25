@@ -9,9 +9,25 @@
     <servlet-name>PortTestService</servlet-name>
     <servlet-class>jacz.porttestservice.PortTestService</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>ServerStatus</servlet-name>
+    <servlet-class>jacz.porttestservice.ServerStatus</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>Location</servlet-name>
+    <servlet-class>jacz.porttestservice.Location</servlet-class>
+  </servlet>
 
   <servlet-mapping>
     <servlet-name>PortTestService</servlet-name>
     <url-pattern>/ports</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>ServerStatus</servlet-name>
+    <url-pattern>/status</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Location</servlet-name>
+    <url-pattern>/location</url-pattern>
   </servlet-mapping>
 </web-app>

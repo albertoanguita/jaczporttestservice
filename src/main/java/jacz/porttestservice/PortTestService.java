@@ -92,6 +92,7 @@ public class PortTestService extends HttpServlet {
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
             throws ServletException, IOException {
+        ChannelConnectionPoint ccp = null;
         String ip = request.getParameter(IP);
         String portStr = request.getParameter(PORT);
         String peerIDStr = request.getParameter(PEER_ID);
@@ -112,7 +113,7 @@ public class PortTestService extends HttpServlet {
                 listeningChannel.add(PortTestFSM.LISTENING_CHANNEL);
                 concurrentChannels.add(listeningChannel);
                 ClientModule clientModule = new ClientModule(new IP4Port(ip, port), new ChannelActionImpl(), concurrentChannels);
-                ChannelConnectionPoint ccp = clientModule.connect(CONNECTION_MAX_WAIT);
+                ccp = clientModule.connect(CONNECTION_MAX_WAIT);
                 clientModule.start();
                 if (ccp.registerTimedFSM(portTestFSM, FSM_MAX_WAIT, PortTestFSM.LISTENING_CHANNEL) != null) {
                     portTestFSM.waitUntilFinished();
@@ -128,13 +129,16 @@ public class PortTestService extends HttpServlet {
                     System.out.println(RESULT_COULD_NOT_CONNECT.result);
                     writeResponse(response, RESULT_COULD_NOT_CONNECT);
                 }
-                ccp.disconnect();
             } catch (IllegalArgumentException e) {
                 System.out.println(RESULT_BAD_REQUEST_FORMAT.result);
                 writeResponse(response, RESULT_BAD_REQUEST_FORMAT);
             } catch (IOException e) {
                 System.out.println(RESULT_COULD_NOT_CONNECT.result);
                 writeResponse(response, RESULT_COULD_NOT_CONNECT);
+            } finally {
+                if (ccp != null) {
+                    ccp.disconnect();
+                }
             }
         }
     }
