@@ -5,7 +5,8 @@ import jacz.commengine.channel.ChannelAction;
 import jacz.commengine.channel.ChannelConnectionPoint;
 import jacz.commengine.clientserver.client.ClientModule;
 import jacz.commengine.communication.CommError;
-import jacz.peerengineservice.PeerID;
+import jacz.peerengineservice.PeerId;
+import jacz.util.maps.SimpleObjectCount;
 import jacz.util.network.IP4Port;
 
 import javax.servlet.ServletException;
@@ -18,10 +19,13 @@ import java.util.Set;
 
 /**
  * Port test service
+ * <p/>
+ * Requests shall be like:
+ * http://localhost:8080/porttestservice/ports?ip=192.168.1.10&port=10000&peerid=0000000000000000000000000000000000000000001
  */
 public class PortTestService extends HttpServlet {
 
-    private static class ChannelActionImpl implements ChannelAction {
+    private static ChannelAction ChannelActionImpl = new ChannelAction() {
 
         @Override
         public void newMessage(ChannelConnectionPoint ccp, byte channel, Object message) {
@@ -47,7 +51,7 @@ public class PortTestService extends HttpServlet {
         public void error(ChannelConnectionPoint ccp, CommError e) {
             // ignore
         }
-    }
+    };
 
     public static final class Result {
 
@@ -62,23 +66,29 @@ public class PortTestService extends HttpServlet {
         }
     }
 
-    private final static int CONNECTION_MAX_WAIT = 4000;
+    // todo set constants in init
+    private static final int CONNECTION_MAX_WAIT = 4000;
 
-    private final static long FSM_MAX_WAIT = 3000;
+    private static final long FSM_MAX_WAIT = 3000;
 
-    private final static String IP = "ip";
+    private static final int REQUESTS_FOR_90_LOAD = 10;
 
-    private final static String PORT = "port";
+    private static final String IP = "ip";
 
-    private final static String PEER_ID = "peerid";
+    private static final String PORT = "port";
 
-    private final static Result RESULT_OK = new Result("OK");
+    private static final String PEER_ID = "peerid";
 
-    private final static Result RESULT_TEST_FAILED = new Result("TEST_FAILED");
+    private static final Result RESULT_OK = new Result("OK");
 
-    private final static Result RESULT_BAD_REQUEST_FORMAT = new Result("BAD_REQUEST_FORMAT");
+    private static final Result RESULT_TEST_FAILED = new Result("TEST_FAILED");
 
-    private final static Result RESULT_COULD_NOT_CONNECT = new Result("COULD_NOT_CONNECT");
+    private static final Result RESULT_BAD_REQUEST_FORMAT = new Result("BAD_REQUEST_FORMAT");
+
+    private static final Result RESULT_COULD_NOT_CONNECT = new Result("COULD_NOT_CONNECT");
+
+
+    private final static SimpleObjectCount activeRequestsCount = new SimpleObjectCount();
 
 
     @Override
@@ -91,6 +101,17 @@ public class PortTestService extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
+            throws ServletException, IOException {
+        activeRequestsCount.add();
+        try {
+            handleRequest(request, response);
+        } finally {
+            activeRequestsCount.subtract();
+        }
+    }
+
+    private void handleRequest(HttpServletRequest request,
+                               HttpServletResponse response)
             throws ServletException, IOException {
         ChannelConnectionPoint ccp = null;
         String ip = request.getParameter(IP);
@@ -106,13 +127,13 @@ public class PortTestService extends HttpServlet {
                 if (port < 0 || port > 65535) {
                     throw new NumberFormatException();
                 }
-                PeerID peerID = new PeerID(peerIDStr);
-                PortTestFSM portTestFSM = new PortTestFSM(peerID);
+                PeerId peerId = new PeerId(peerIDStr);
+                PortTestFSM portTestFSM = new PortTestFSM(peerId);
                 Set<Set<Byte>> concurrentChannels = new HashSet<>();
                 Set<Byte> listeningChannel = new HashSet<>();
                 listeningChannel.add(PortTestFSM.LISTENING_CHANNEL);
                 concurrentChannels.add(listeningChannel);
-                ClientModule clientModule = new ClientModule(new IP4Port(ip, port), new ChannelActionImpl(), concurrentChannels);
+                ClientModule clientModule = new ClientModule(new IP4Port(ip, port), ChannelActionImpl, concurrentChannels);
                 ccp = clientModule.connect(CONNECTION_MAX_WAIT);
                 clientModule.start();
                 if (ccp.registerTimedFSM(portTestFSM, FSM_MAX_WAIT, PortTestFSM.LISTENING_CHANNEL) != null) {

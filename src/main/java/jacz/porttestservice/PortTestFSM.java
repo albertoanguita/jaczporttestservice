@@ -2,10 +2,10 @@ package jacz.porttestservice;
 
 import jacz.commengine.channel.ChannelConnectionPoint;
 import jacz.commengine.channel.TimedChannelFSMAction;
-import jacz.peerengineservice.PeerID;
-import jacz.peerengineservice.client.connection.ConnectionEstablishmentServerFSM;
+import jacz.peerengineservice.PeerId;
+import jacz.peerengineservice.client.connection.peers.ConnectionEstablishmentServerFSM;
 import jacz.peerengineservice.util.ChannelConstants;
-import jacz.util.concurrency.execution_control.PausableElement;
+import jacz.util.concurrency.execution_control.TrafficControl;
 
 /**
  * FSM for testing a peer connection
@@ -15,31 +15,32 @@ public class PortTestFSM implements TimedChannelFSMAction<PortTestFSM.State> {
     public enum State {
         REQUEST_SENT,
         SUCCESS,
+        FAIL,
         ERROR
     }
 
     public static final byte LISTENING_CHANNEL = (byte) 0;
 
-    private final PeerID peerID;
+    private final PeerId peerID;
 
-    private final PausableElement waitUntilFinished;
+    private final TrafficControl waitUntilFinished;
 
     private boolean success;
 
-    public PortTestFSM(PeerID peerID) {
+    public PortTestFSM(PeerId peerID) {
         this.peerID = peerID;
-        waitUntilFinished = new PausableElement();
+        waitUntilFinished = new TrafficControl();
         waitUntilFinished.pause();
         success = false;
     }
 
     public State processMessage(State currentState, byte channel, Object message, ChannelConnectionPoint ccp) throws IllegalArgumentException {
-        if (message instanceof PeerID) {
-            PeerID receivedPeerID = (PeerID) message;
-            if (peerID.equals(receivedPeerID)) {
+        if (message instanceof String) {
+            PeerId receivedPeerId = new PeerId((String) message);
+            if (peerID.equals(receivedPeerId)) {
                 return State.SUCCESS;
             } else {
-                return State.ERROR;
+                return State.FAIL;
             }
         } else {
             return State.ERROR;
@@ -62,6 +63,7 @@ public class PortTestFSM implements TimedChannelFSMAction<PortTestFSM.State> {
                 finish(true);
                 return true;
 
+            case FAIL:
             case ERROR:
                 finish(false);
                 return true;

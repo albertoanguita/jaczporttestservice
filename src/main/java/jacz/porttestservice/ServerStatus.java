@@ -40,6 +40,7 @@ public class ServerStatus extends HttpServlet {
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
             throws ServletException, IOException {
+        // todo calculate server load
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(new Result(0f));
         response.getWriter().write(jsonResponse);

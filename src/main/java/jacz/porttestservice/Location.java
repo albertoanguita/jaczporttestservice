@@ -32,6 +32,7 @@ public class Location extends HttpServlet {
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
             throws ServletException, IOException {
+        // todo assess location at init, with config in web.xml
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(new Result(UNKNOWN_LOCATION));
         response.getWriter().write(jsonResponse);
