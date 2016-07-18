@@ -1,11 +1,11 @@
 package jacz.porttestservice;
 
-import jacz.commengine.channel.ChannelConnectionPoint;
-import jacz.commengine.channel.TimedChannelFSMAction;
 import jacz.peerengineservice.PeerId;
 import jacz.peerengineservice.client.connection.peers.ConnectionEstablishmentServerFSM;
 import jacz.peerengineservice.util.ChannelConstants;
-import jacz.util.concurrency.execution_control.TrafficControl;
+import org.aanguita.jacuzzi.concurrency.execution_control.TrafficControl;
+import org.aanguita.jtcpserver.channel.ChannelConnectionPoint;
+import org.aanguita.jtcpserver.channel.TimedChannelFSMAction;
 
 /**
  * FSM for testing a peer connection
@@ -75,6 +75,11 @@ public class PortTestFSM implements TimedChannelFSMAction<PortTestFSM.State> {
 
     public void disconnected(ChannelConnectionPoint ccp) {
         finish(false);
+    }
+
+    @Override
+    public void raisedUnhandledException(Exception e, ChannelConnectionPoint channelConnectionPoint) {
+        e.printStackTrace();
     }
 
     public void timedOut(State state, ChannelConnectionPoint ccp) {

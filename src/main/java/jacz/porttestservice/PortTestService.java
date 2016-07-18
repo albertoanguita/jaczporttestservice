@@ -1,13 +1,13 @@
 package jacz.porttestservice;
 
 import com.google.gson.Gson;
-import jacz.commengine.channel.ChannelAction;
-import jacz.commengine.channel.ChannelConnectionPoint;
-import jacz.commengine.clientserver.client.ClientModule;
-import jacz.commengine.communication.CommError;
+import org.aanguita.jtcpserver.channel.ChannelAction;
+import org.aanguita.jtcpserver.channel.ChannelConnectionPoint;
+import org.aanguita.jtcpserver.clientserver.client.ClientModule;
+import org.aanguita.jtcpserver.communication.CommError;
 import jacz.peerengineservice.PeerId;
-import jacz.util.maps.SimpleObjectCount;
-import jacz.util.network.IP4Port;
+import org.aanguita.jacuzzi.maps.SimpleObjectCount;
+import org.aanguita.jacuzzi.network.IP4Port;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
